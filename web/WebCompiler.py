@@ -30,7 +30,7 @@ class WebCompiler(http.server.SimpleHTTPRequestHandler):
                     code = request["input"]
                     passes = request["passes"]
                     code_file = ".tmp.py"
-                    result_file = ".tmp.py.ast.typed"
+                    result_file = ".tmp.py.out"
 
 
                 except Exception as e:
@@ -61,7 +61,7 @@ class WebCompiler(http.server.SimpleHTTPRequestHandler):
 
                 stat = subprocess.run(["java", "-cp", classpath,
                     "chocopy.ChocoPy", "--pass", passes, 
-                    code_file, "--out", result_file], capture_output=True) 
+                    code_file, "--json", "--out",  result_file], capture_output=True)
 
                 if stat.returncode not in [0, 2]:
                     raise Exception(stat.stderr.decode('utf-8'))
