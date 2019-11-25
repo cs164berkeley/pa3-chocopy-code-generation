@@ -714,16 +714,25 @@ public abstract class CodeGenBase {
         alignObject();
     }
 
+    /** Emit a word containing a constant int representing VALUE */
+    protected void emitConstantInt(int value, String comment) {
+        backend.emitWordLiteral(value, comment);
+    }
+
+    /** Emit a word containing a constant bool representing VALUE */
+    protected void emitConstantBool(boolean value, String comment) {
+        backend.emitWordLiteral(value ? 1 : 0, comment);
+    }
+
     /** Emit a word containing a constant representing VALUE, assuming that
      *  it will be interpreted as a value of static type TYPE. VALUE may be
      *  null, indicating None. TYPE may be null, indicating object.
      *  COMMENT is an optional comment.  */
     protected void emitConstant(Literal value, ValueType type, String comment) {
         if (type != null && type.equals(Type.INT_TYPE)) {
-            backend.emitWordLiteral(((IntegerLiteral) value).value, comment);
+            this.emitConstantInt(((IntegerLiteral) value).value, comment);
         } else if (type != null && type.equals(Type.BOOL_TYPE)) {
-            backend.emitWordLiteral(((BooleanLiteral) value).value ? 1 : 0,
-                                    comment);
+            this.emitConstantBool(((BooleanLiteral) value).value, comment);
         } else {
             backend.emitWordAddress(constants.fromLiteral(value), comment);
         }
@@ -763,7 +772,7 @@ public abstract class CodeGenBase {
                                     "Object size");
             backend.emitWordAddress(strClass.getDispatchTableLabel(),
                                     "Pointer to dispatch table");
-            backend.emitWordLiteral(value.length(),
+            this.emitConstantInt(value.length(),
                                     "Constant value of attribute: __len__");
             backend.emitString(value, "Constant value of attribute: __str__");
             alignObject();
@@ -904,28 +913,16 @@ public abstract class CodeGenBase {
         emitStdFunc(label, LIBRARY_CODE_DIR);
     }
 
-    /** Emit label and body for the function named NAME, taking the
-     *  source from from directory LIB (must end in '/'). */
-    protected void emitStdFunc(String name, String lib) {
-        emitStdFunc(new Label(name), lib);
-    }
-
     /** Emit label and body for the function NAME, taking the
      *  source from from the default library directory. */
     protected void emitStdFunc(String name) {
-        emitStdFunc(name, LIBRARY_CODE_DIR);
-    }
-
-    /** Emit label and body for the function described by FUNCINFO, taking the
-     *  source from from directory LIB (must end in '/'). */
-    protected void emitStdFunc(FuncInfo funcInfo, String lib) {
-        emitStdFunc(funcInfo.getCodeLabel(), lib);
+        emitStdFunc(new Label(name));
     }
 
     /** Emit label and body for the function described by FUNCINFO, taking the
      *  source from from the default library directory. */
     protected void emitStdFunc(FuncInfo funcInfo) {
-        emitStdFunc(funcInfo, LIBRARY_CODE_DIR);
+        emitStdFunc(funcInfo.getCodeLabel());
     }
 
     /** Pattern matching STRING["..."]. */
