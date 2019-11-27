@@ -3,6 +3,8 @@ import socketserver
 import json
 import sys, subprocess, os, platform
 
+allow_cors = True
+
 classpath_separator = ';' if platform.system() == 'Windows' else ':'
 
 def read_file(fn):
@@ -18,6 +20,24 @@ def file_exists(fn):
     return os.path.exists(fn)
 
 class WebCompiler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        if allow_cors:
+            self.send_header("access-control-allow-origin", "*")
+            self.send_header("access-control-allow-methods", "DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT")
+            self.send_header("access-control-allow-headers", "Content-Type,Authorization")
+        http.server.SimpleHTTPRequestHandler.end_headers(self)
+
+
+    def do_OPTIONS(self):
+        if self.path == "/compile":
+            self.send_response(200)
+            self.end_headers()
+        else:
+            self.send_response(404)
+            self.end_headers()
+        return
+
+    
     def do_POST(self):
         if self.path == "/compile":
             content_len = int(self.headers.get('Content-Length', 0))
